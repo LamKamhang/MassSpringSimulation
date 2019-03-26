@@ -17,13 +17,19 @@ int main(int argc, char const *argv[])
 	myspring.bindLeft(m1);
 	myspring.bindRight(m2);
 
-	double timeStep = 0.1;
+	double h = 0.1;
 
 	while (1)
 	{
 		myspring.update();
-		m1->update(timeStep);
-		m2->update(timeStep);
+		auto m = m2->getMass();
+		auto k = myspring.getK();
+		auto x = myspring.getDeltaX();
+		auto v = m2->getVel();
+		auto deltaV = -(x + v*h)*h*k / (m + h*h * k);
+		auto deltaX = (v + deltaV) * h;
+		
+		m2->update(deltaX, deltaV);
 		sleep(1);
 		cout << "m2 : " << m2->getPos() << endl;
 		cout << "len: " << myspring.getCurLen() << endl;

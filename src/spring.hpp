@@ -14,11 +14,12 @@ public:
 	inline void update();
 
 	// getter
-	inline std::shared_ptr<Particle> getLeft();
-	inline std::shared_ptr<Particle> getRight();
-	inline double getK();
-	inline double getOrigLen();
-	inline double getCurLen();
+	inline std::shared_ptr<Particle> getLeft()	const;
+	inline std::shared_ptr<Particle> getRight()	const;
+	inline double getK()						const;
+	inline double getOrigLen()					const;
+	inline double getCurLen()					const;
+	inline mymath::Vector<double, 3> getDeltaX()const;
 
 	// setter
 	inline void bindLeft(std::shared_ptr<Particle> &left);
@@ -64,25 +65,30 @@ inline void Spring::update()
 }
 
 // getter
-inline std::shared_ptr<Particle> Spring::getLeft()
+inline std::shared_ptr<Particle> Spring::getLeft() const
 {
 	return _left;
 }
-inline std::shared_ptr<Particle> Spring::getRight()
+inline std::shared_ptr<Particle> Spring::getRight() const
 {
 	return _right;
 }
-inline double Spring::getK()
+inline double Spring::getK() const
 {
 	return _stiffness;
 }
-inline double Spring::getOrigLen()
+inline double Spring::getOrigLen() const
 {
 	return _lenOrig;
 }
-inline double Spring::getCurLen()
+inline double Spring::getCurLen() const
 {
 	return (_left->getPos() - _right->getPos()).norm2();
+}
+inline mymath::Vector<double, 3> Spring::getDeltaX() const
+{
+	auto LtoR = _right->getPos() - _left->getPos();
+	return LtoR * (1 - _lenOrig / LtoR.norm2());
 }
 
 // setter
@@ -120,6 +126,5 @@ inline void Spring::moveR(const mymath::Vector<double, 3> &deltaPos)
 
 inline mymath::Vector<double, 3> Spring::_calElasticForce()
 {
-	auto rePos = _right->getPos() - _left->getPos();
-	return rePos * (_lenOrig / rePos.norm2() - 1) * _stiffness;
+	return getDeltaX() * (-_stiffness);
 }

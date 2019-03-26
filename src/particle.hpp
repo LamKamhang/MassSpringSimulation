@@ -18,7 +18,7 @@ public:
 	inline void move(mymath::Vector<double, 3> deltaPos);
 
 	// update
-	inline void update(double timeStep);
+	inline void update(mymath::Vector<double, 3> deltaX, mymath::Vector<double, 3> deltaV);
 
 	// getter
 	inline mymath::Vector<double, 3> getPos()	const;
@@ -60,16 +60,15 @@ Particle::Particle(double mass, bool fixed,
 	, _isFixed(fixed)
 {}
 
-inline void Particle::update(double timeStep)
+inline void Particle::update(mymath::Vector<double, 3> deltaX, mymath::Vector<double, 3> deltaV)
 {
 	if (_isFixed)
 		return;
 	else
 	{
 		// do not consider small mass error.
-		auto v0 = _velocity;
-		_velocity = v0 + getAcc() * timeStep;
-		_position += (v0 + _velocity) / 2 * timeStep;
+		_velocity += deltaV;
+		_position += deltaX;
 	}
 }
 
