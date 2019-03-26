@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <cmath>
 #include <initializer_list>
 
 namespace mymath
@@ -28,20 +29,21 @@ namespace mymath
 		Vector(T val = 0);
 		Vector(T array[], int len, T val = 0);
 		Vector(const std::vector<T> &vec, T val = 0);
-		Vector(const Vector<T, D> &right, T val = 0);
+		Vector(const Vector &right, T val = 0);
 		Vector(const std::initializer_list<T>& list, T val = 0);
 
 		// operators:
-		inline const Vector operator+(const Vector<T, D> &right)	const;
-		inline const Vector operator-(const Vector<T, D> &right)	const;
-		inline const Vector operator*(T right)						const;
-		inline const Vector operator*(const Vector<T, D> &right)	const;
-		inline const Vector operator/(T right)						const;
-		inline bool		 	operator==(const Vector<T, D> &right)	const;
-		inline Vector &	 	operator+=(const Vector<T, D> &right);
-		inline Vector &	 	operator-=(const Vector<T, D> &right);
+		inline const Vector operator-()						const;
+		inline const Vector operator+(const Vector &right)	const;
+		inline const Vector operator-(const Vector &right)	const;
+		inline const Vector operator*(T right)				const;
+		inline const Vector operator*(const Vector &right)	const;
+		inline const Vector operator/(T right)				const;
+		inline bool		 	operator==(const Vector &right)	const;
+		inline Vector &	 	operator+=(const Vector &right);
+		inline Vector &	 	operator-=(const Vector &right);
 		inline Vector &	 	operator*=(T right);
-		inline Vector &	 	operator*=(const Vector<T, D> &right);
+		inline Vector &	 	operator*=(const Vector &right);
 		inline Vector &	 	operator/=(T right);
 
 		inline operator std::string() const;
@@ -50,11 +52,14 @@ namespace mymath
 		inline T getItem (unsigned index) const;
 
 		// inner product
-		double innerProduct(const Vector<T, D> &right);
+		inline double innerProduct(const Vector &right) const;
+
+		// 2-norm
+		inline double norm2() const;
 		
 	private:
-		void _isValidDim();
-		void _setDefault(T val, unsigned left = 0, unsigned right = D);
+		inline void _isValidDim();
+		inline void _setDefault(T val, unsigned left = 0, unsigned right = D);
 	
 	private:
 		T _items[D];
@@ -101,7 +106,7 @@ namespace mymath
 	}
 	
 	template<class T, unsigned D>
-	Vector<T, D>::Vector(const Vector<T, D> &right, T val)
+	Vector<T, D>::Vector(const Vector &right, T val)
 	{
 		for (unsigned i = 0; i < D; ++i)
 		{
@@ -127,6 +132,17 @@ namespace mymath
 	}
 
 	// operators:
+	template<class T, unsigned D>
+	inline const Vector<T, D> Vector<T, D>::operator-()								const
+	{
+		Vector<T, D> res(*this);
+		for (unsigned i = 0; i < D; ++i)
+		{
+			res._items[i] = -_items[i];
+		}
+		return res;
+	}
+
 	template<class T, unsigned D>
 	inline const Vector<T, D> Vector<T, D>::operator+(const Vector<T, D> &right) const
 	{
@@ -277,7 +293,7 @@ namespace mymath
 
 	// inner product
 	template<class T, unsigned D>
-	double Vector<T, D>::innerProduct(const Vector<T, D> &right)
+	inline double Vector<T, D>::innerProduct(const Vector<T, D> &right) const
 	{
 		double res = 0;
 		for (unsigned i = 0; i < D; ++i)
@@ -287,15 +303,28 @@ namespace mymath
 		return res;
 	}
 
+	// 2-norm
 	template<class T, unsigned D>
-	void Vector<T, D>::_isValidDim()
+	inline double Vector<T, D>::norm2() const
+	{
+		double res = 0;
+		for (unsigned i = 0; i < D; ++i)
+		{
+			res += _items[i] * _items[i];
+		}
+
+		return sqrt(res);
+	}
+
+	template<class T, unsigned D>
+	inline void Vector<T, D>::_isValidDim()
 	{
 		if (D == 0)
 			throw mathException("VectorDimensionError");
 	}
 
 	template<class T, unsigned D>
-	void Vector<T, D>::_setDefault(T val, unsigned left, unsigned right)
+	inline void Vector<T, D>::_setDefault(T val, unsigned left, unsigned right)
 	{
 		if (right > D)
 			throw mathException("IndexOutOfBound");

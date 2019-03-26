@@ -9,13 +9,16 @@ class Particle
 public:
 	// constructor
 	Particle(double mass = 0, bool fixed = false, 
-			 mymath::Vector<double, 3> pos = mymath::Vector<double, 3>(),
-			 mymath::Vector<double, 3> vel = mymath::Vector<double, 3>(),
-			 mymath::Vector<double, 3> force = mymath::Vector<double, 3>());
+			 mymath::Vector<double, 3> pos = {0, 0, 0},
+			 mymath::Vector<double, 3> vel = {0, 0, 0},
+			 mymath::Vector<double, 3> force = {0, 0, 0});
 	
 	inline void addForce(mymath::Vector<double, 3> force);
 	inline void addVel(mymath::Vector<double, 3> deltaVel);
 	inline void move(mymath::Vector<double, 3> deltaPos);
+
+	// update
+	inline void update(double timeStep);
 
 	// getter
 	inline mymath::Vector<double, 3> getPos()	const;
@@ -57,6 +60,19 @@ Particle::Particle(double mass, bool fixed,
 	, _isFixed(fixed)
 {}
 
+inline void Particle::update(double timeStep)
+{
+	if (_isFixed)
+		return;
+	else
+	{
+		// do not consider small mass error.
+		auto v0 = _velocity;
+		_velocity = v0 + getAcc() * timeStep;
+		_position += (v0 + _velocity) / 2 * timeStep;
+	}
+}
+
 inline void Particle::addForce(mymath::Vector<double, 3> force)
 {
 	_force += force;
@@ -83,7 +99,10 @@ inline mymath::Vector<double, 3> Particle::getVel() const
 }
 inline mymath::Vector<double, 3> Particle::getAcc() const
 {
-	return _force / _mass;
+	if (_isFixed)
+		return {0, 0, 0};
+	else
+		return _force / _mass;
 }
 inline mymath::Vector<double, 3> Particle::getForce() const
 {
