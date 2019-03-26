@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# private data
+*.pdf
+
+# setting files
+.vscode
