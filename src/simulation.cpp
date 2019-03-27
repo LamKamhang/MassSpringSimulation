@@ -5,40 +5,44 @@
 #include "spring.hpp"
 #include "particle.hpp"
 #include "vector.hpp"
+#include "simulation.hpp"
 
 using namespace std;
 using namespace mymath;
 
+void render(unsigned left, unsigned right)
+{
+	for (unsigned i = 0; i < left; ++i)
+	{
+		cout << " ";
+	}
+	for (unsigned i = left; i <= right; ++i)
+	{
+		cout << "*";
+	}
+	cout  << endl;
+}
+
 int main(int argc, char const *argv[])
 {
-	Spring myspring(1, 5);
-	shared_ptr<Particle> m2(new Particle(2, false, {3, 0, 0}));
-	shared_ptr<Particle> m1(new Particle(0, true));
-	myspring.bindLeft(m1);
-	myspring.bindRight(m2);
+	shared_ptr<Spring> spring(new Spring(50, 20));
+	shared_ptr<Particle> left(new Particle(300, false, {10, 0, 0}));
+	shared_ptr<Particle> right(new Particle(200, false, {20, 0, 0}));
+	
+	spring->bindLeft(left);
+	spring->bindRight(right);
 
-	double h = 0.1;
+	NaiveSystem ns(spring);
 
 	while (1)
 	{
-		myspring.update();
-		auto m = m2->getMass();
-		auto k = myspring.getK();
-		auto x = myspring.getDeltaX();
-		auto v = m2->getVel();
-		auto deltaV = -(x + v*h)*h*k / (m + h*h * k);
-		auto deltaX = (v + deltaV) * h;
-		
-		m2->update(deltaX, deltaV);
-		sleep(1);
-		cout << "m2 : " << m2->getPos() << endl;
-		cout << "len: " << myspring.getCurLen() << endl;
-		cout << "vel: " << m2->getVel() << endl;
-		cout << "acc: " << m2->getAcc() << endl;
-		cout << "force: " << m2->getForce() << endl;
-		cout << endl;
-		m1->setForce({0, 0, 0});
-		m2->setForce({0, 0, 0});
+		ns.update(0.1);
+		unsigned x0 = left->getPos().getItem(0)*5;
+		unsigned x1 = right->getPos().getItem(0)*5;
+		// cout << x0 << " " << x1 << endl;
+		render(x0, x1);
+		usleep(100000);
 	}
+
 	return 0;
 }

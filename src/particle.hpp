@@ -13,12 +13,10 @@ public:
 			 mymath::Vector<double, 3> vel = {0, 0, 0},
 			 mymath::Vector<double, 3> force = {0, 0, 0});
 	
-	inline void addForce(mymath::Vector<double, 3> force);
-	inline void addVel(mymath::Vector<double, 3> deltaVel);
-	inline void move(mymath::Vector<double, 3> deltaPos);
+	inline void addForce(const mymath::Vector<double, 3> &force);
+	inline void addVel(const mymath::Vector<double, 3> &deltaV);
+	inline void move(const mymath::Vector<double, 3> &deltaX);
 
-	// update
-	inline void update(mymath::Vector<double, 3> deltaX, mymath::Vector<double, 3> deltaV);
 
 	// getter
 	inline mymath::Vector<double, 3> getPos()	const;
@@ -60,31 +58,25 @@ Particle::Particle(double mass, bool fixed,
 	, _isFixed(fixed)
 {}
 
-inline void Particle::update(mymath::Vector<double, 3> deltaX, mymath::Vector<double, 3> deltaV)
+inline void Particle::addForce(const mymath::Vector<double, 3> &force)
 {
 	if (_isFixed)
 		return;
-	else
-	{
-		// do not consider small mass error.
-		_velocity += deltaV;
-		_position += deltaX;
-	}
-}
-
-inline void Particle::addForce(mymath::Vector<double, 3> force)
-{
 	_force += force;
 }
 
-inline void Particle::addVel(mymath::Vector<double, 3> deltaVel)
+inline void Particle::addVel(const mymath::Vector<double, 3> &deltaV)
 {
-	_velocity += deltaVel;
+	if (_isFixed)
+		return;
+	_velocity += deltaV;
 }
 
-inline void Particle::move(mymath::Vector<double, 3> deltaPos)
+inline void Particle::move(const mymath::Vector<double, 3> &deltaX)
 {
-	_position += deltaPos;
+	if (_isFixed)
+		return;
+	_position += deltaX;
 }
 
 // getter
