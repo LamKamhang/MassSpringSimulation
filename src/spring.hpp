@@ -87,18 +87,40 @@ inline double Spring::getCurLen() const
 }
 inline mymath::Vector<double, 3> Spring::getDeltaX() const
 {
-	auto LtoR = _right->getPos() - _left->getPos();
-	return LtoR * (1 - _lenOrig / LtoR.norm2());
+	return _right->getOffset() - _left->getOffset();
+	// auto LtoR = _right->getPos() - _left->getPos();
+	// return LtoR * (1 - _lenOrig / LtoR.norm2());
 }
 
 // setter
 inline void Spring::bindLeft(std::shared_ptr<Particle> &left)
 {
 	_left = left;
+	if (_right != nullptr)
+	{
+		auto LtoR = _right->getPos() - _left->getPos();
+		auto dx = LtoR * (1 - _lenOrig / LtoR.norm2());
+		_left->setOffset(_right->getOffset() - dx);
+	}
+	else
+	{
+		_left->setOffset({0, 0, 0});
+	}
+	
 }
 inline void Spring::bindRight(std::shared_ptr<Particle> &right)
 {
 	_right = right;
+	if (_left != nullptr)
+	{
+		auto LtoR = _right->getPos() - _left->getPos();
+		auto dx = LtoR * (1 - _lenOrig / LtoR.norm2());
+		_right->setOffset(_left->getOffset() + dx);
+	}
+	else
+	{
+		_right->setOffset({0, 0, 0});
+	}
 }
 inline void Spring::setK(double k)
 {
