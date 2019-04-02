@@ -7,7 +7,7 @@
 #include "spring.hpp"
 #include "vector.hpp"
 
-#include <eigen3/Eigen/Sparse>
+#include <eigen3/Eigen/Dense>
 #include <eigen3/Eigen/Cholesky>
 
 class NaiveSystem
@@ -43,7 +43,7 @@ void NaiveSystem::reset(mymath::Vector<double, 3> leftPos, mymath::Vector<double
 
 void NaiveSystem::_ImplicitEuler(double h)
 {
-	_spring->update();
+	// _spring->update();
 
 	// get mass point
 	auto left = _spring->getLeft();
@@ -54,7 +54,7 @@ void NaiveSystem::_ImplicitEuler(double h)
 	// from left to right
 	auto x = _spring->getDeltaX();
 
-	// (m + h^2k)*DeltaV = -hk(x+hv)
+	// (m + h^2k)*DeltaV = hk(x+hv)
 	// DeltaX = h(v+DeltaV)
 	// left
 	auto m = left->getMass();
@@ -64,6 +64,7 @@ void NaiveSystem::_ImplicitEuler(double h)
 	left->addVel(deltaV);
 	left->move(deltaX);
 
+	// (m + h^2k)*DeltaV = -hk(x+hv)
 	// right
 	m = right->getMass();
 	v = right->getVel();
@@ -72,9 +73,9 @@ void NaiveSystem::_ImplicitEuler(double h)
 	right->addVel(deltaV);
 	right->move(deltaX);
 
-	// clean force
-	left->setForce({0, 0, 0});
-	right->setForce({0, 0, 0});
+	// // clean force
+	// left->setForce({0, 0, 0});
+	// right->setForce({0, 0, 0});
 }
 
 class ChainSystem1D
@@ -92,8 +93,9 @@ private:
 	std::vector<std::shared_ptr<Particle>* > _mass;
 	std::vector<std::shared_ptr<Spring>* > _springs;
 	double timeStep;
-	Eigen::MatrixXd A;
+	
 	Eigen::MatrixXd K;
+	Eigen::LDLT<Eigen::MatrixXd> A_LDLT;
 };
 
 ChainSystem1D::ChainSystem1D(const std::vector<std::shared_ptr<Particle>* > &mass,
@@ -102,10 +104,10 @@ ChainSystem1D::ChainSystem1D(const std::vector<std::shared_ptr<Particle>* > &mas
 	: _mass(mass)
 	, _springs(springs)
 	, timeStep(h)
-	, A(_mass.size(), _mass.size())
 	, K(_mass.size(), _mass.size())
 {
 	auto size = _mass.size();
+	Eigen::MatrixXd A(size, size);
 
 	// frst line
 	K(0, 0) = (*springs[0])->getK();
@@ -162,9 +164,49 @@ ChainSystem1D::ChainSystem1D(const std::vector<std::shared_ptr<Particle>* > &mas
 
 	std::cout << "A" << std::endl;
 	std::cout << A << std::endl;
+
+	A_LDLT = A.ldlt();
+}
+
+void ChainSystem1D::update()
+{
+	_ImplicitEuler();
 }
 
 void ChainSystem1D::_ImplicitEuler()
 {
+	// cal delta V
+	Eigen::MatrixXd v(_mass.size(), 3);
+	Eigen::MatrixXd x(_mass.size(), 3);
+	for (unsigned i = 0; i < _mass.size(); ++i)
+	{
+		v(i, 0) = (*_mass[0])->getVel().getItem(0);
+		v(i, 1) = (*_mass[0])->getVel().getItem(1);
+		v(i, 2) = (*_mass[0])->getVel().getItem(2);
 
+		x(i, 0) = (*_mass[0])->getOffset().getItem(0);
+		x(i, 1) = (*_mass[0])->getOffset().getItem(1);
+		x(i, 2) = (*_mass[0])->getOffset().getItem(2);
+	}
+
+	std::cout << "x" << std::endl;
+	std::cout << x << std::endl;
+
+	std::cout << "v" << std::endl;
+	std::cout << v << std::endl;
+
+	auto b = timeStep*K*(x + timeStep*v);
+	auto deltaV = A_LDLT.solve(b);
+
+	std::cout << "b" << std::endl;
+	std::cout << b << std::endl;
+
+	std::cout << "deltaV" << std::endl;
+	std::cout << deltaV << std::endl;
+
+	for (unsigned i = 0; i < _mass.size(); ++i)
+	{
+		(*_mass[i])->addVel({deltaV(i, 0), deltaV(i, 1), deltaV(i, 2)});
+		(*_mass[i])->move((*_mass[i])->getVel()*timeStep);
+	}
 }
