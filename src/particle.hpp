@@ -20,6 +20,7 @@ public:
 
 	// getter
 	inline mymath::Vector<double, 3> getPos()	const;
+	inline mymath::Vector<double, 3> getOffset()const;
 	inline mymath::Vector<double, 3> getVel()	const;
 	inline mymath::Vector<double, 3> getAcc()	const;
 	inline mymath::Vector<double, 3> getForce()	const;
@@ -28,6 +29,7 @@ public:
 
 	// setter
 	inline void setPos(mymath::Vector<double, 3> pos);
+	inline void setOffset(mymath::Vector<double, 3> offset);
 	inline void setVel(mymath::Vector<double, 3> vec);
 	inline void setForce(mymath::Vector<double, 3> force);
 	inline void setMass(double mass);
@@ -42,6 +44,7 @@ private:
 private:
 	mymath::Vector<double, 3> _velocity;
 	mymath::Vector<double, 3> _position;
+	mymath::Vector<double, 3> _offset;
 	mymath::Vector<double, 3> _force;
 	double _mass;
 	bool _isFixed;
@@ -56,7 +59,13 @@ Particle::Particle(double mass, bool fixed,
 	, _force(force)
 	, _mass(mass)
 	, _isFixed(fixed)
-{}
+	, _offset({0, 0, 0})
+{
+	if (_isFixed)
+	{
+		_force = _velocity = mymath::Vector<double, 3> {0, 0, 0};
+	}
+}
 
 inline void Particle::addForce(const mymath::Vector<double, 3> &force)
 {
@@ -76,13 +85,17 @@ inline void Particle::move(const mymath::Vector<double, 3> &deltaX)
 {
 	if (_isFixed)
 		return;
-	_position += deltaX;
+	_offset += deltaX;
 }
 
 // getter
 inline mymath::Vector<double, 3> Particle::getPos() const
 {
-	return _position;
+	return _position + _offset;
+}
+inline mymath::Vector<double, 3> Particle::getOffset()const
+{
+	return _offset;
 }
 inline mymath::Vector<double, 3> Particle::getVel() const
 {
@@ -113,6 +126,11 @@ inline void Particle::setPos(mymath::Vector<double, 3> pos)
 {
 	_position = pos;
 }
+inline void Particle::setOffset(mymath::Vector<double, 3> offset)
+{
+	if (!_isFixed)
+		_offset = offset;
+}
 inline void Particle::setVel(mymath::Vector<double, 3> vec)
 {
 	_velocity = vec;
@@ -142,7 +160,7 @@ inline Particle::operator std::string() const
 	ss << "[\n";
 	ss << "  " << "state: " << _isFixed << "\n";
 	ss << "  " << "mass : " << _mass << "\n";
-	ss << "  " << "pos  : " << _position << "\n";
+	ss << "  " << "pos  : " << _position + _offset << "\n";
 	ss << "  " << "vel  : " << _velocity << "\n";
 	ss << "  " << "force: " << _force << "\n";
 	ss << "]";
