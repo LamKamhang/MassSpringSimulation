@@ -64,6 +64,9 @@ void NaiveSystem::_ImplicitEuler(double h)
 	left->addVel(deltaV);
 	left->move(deltaX);
 
+	std::cout << "left" << std::endl;
+	std::cout << deltaV << std::endl;
+
 	// (m + h^2k)*DeltaV = -hk(x+hv)
 	// right
 	m = right->getMass();
@@ -72,6 +75,9 @@ void NaiveSystem::_ImplicitEuler(double h)
 	deltaX = (v + deltaV) * h;
 	right->addVel(deltaV);
 	right->move(deltaX);
+
+	std::cout << "right" << std::endl;
+	std::cout << deltaV << std::endl;
 
 	// // clean force
 	// left->setForce({0, 0, 0});
@@ -180,13 +186,13 @@ void ChainSystem1D::_ImplicitEuler()
 	Eigen::MatrixXd x(_mass.size(), 3);
 	for (unsigned i = 0; i < _mass.size(); ++i)
 	{
-		v(i, 0) = (*_mass[0])->getVel().getItem(0);
-		v(i, 1) = (*_mass[0])->getVel().getItem(1);
-		v(i, 2) = (*_mass[0])->getVel().getItem(2);
+		v(i, 0) = (*_mass[i])->getVel().getItem(0);
+		v(i, 1) = (*_mass[i])->getVel().getItem(1);
+		v(i, 2) = (*_mass[i])->getVel().getItem(2);
 
-		x(i, 0) = (*_mass[0])->getOffset().getItem(0);
-		x(i, 1) = (*_mass[0])->getOffset().getItem(1);
-		x(i, 2) = (*_mass[0])->getOffset().getItem(2);
+		x(i, 0) = (*_mass[i])->getOffset().getItem(0);
+		x(i, 1) = (*_mass[i])->getOffset().getItem(1);
+		x(i, 2) = (*_mass[i])->getOffset().getItem(2);
 	}
 
 	std::cout << "x" << std::endl;
@@ -195,7 +201,7 @@ void ChainSystem1D::_ImplicitEuler()
 	std::cout << "v" << std::endl;
 	std::cout << v << std::endl;
 
-	auto b = timeStep*K*(x + timeStep*v);
+	auto b = -timeStep*K*(x + timeStep*v);
 	auto deltaV = A_LDLT.solve(b);
 
 	std::cout << "b" << std::endl;
