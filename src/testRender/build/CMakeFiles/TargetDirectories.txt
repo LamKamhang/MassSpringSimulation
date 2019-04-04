@@ -1,0 +1,3 @@
+/home/kk/Repos/MassSpringSimulation/src/testRender/build/CMakeFiles/rebuild_cache.dir
+/home/kk/Repos/MassSpringSimulation/src/testRender/build/CMakeFiles/renderer.dir
+/home/kk/Repos/MassSpringSimulation/src/testRender/build/CMakeFiles/edit_cache.dir
