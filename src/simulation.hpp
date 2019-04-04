@@ -148,7 +148,7 @@ ChainSystem1D::ChainSystem1D(const std::vector<std::shared_ptr<Particle>* > &mas
 	K(size-1, size-2) = -(*springs[size-2])->getK();
 	K(size-1, size-1) = (*springs[size-2])->getK();
 
-	std::cout << K << std::endl;
+	// std::cout << K << std::endl;
 
 	for (unsigned i = 0; i < size; ++i)
 	{
@@ -163,13 +163,13 @@ ChainSystem1D::ChainSystem1D(const std::vector<std::shared_ptr<Particle>* > &mas
 		}
 	}
 
-	std::cout << "A" << std::endl;
-	std::cout << A << std::endl;
+	// std::cout << "A" << std::endl;
+	// std::cout << A << std::endl;
 
 	A += h*h*K;
 
-	std::cout << "A" << std::endl;
-	std::cout << A << std::endl;
+	// std::cout << "A" << std::endl;
+	// std::cout << A << std::endl;
 
 	A_LDLT = A.ldlt();
 }
@@ -204,8 +204,8 @@ void ChainSystem1D::_ImplicitEuler()
 	auto b = -timeStep*K*(x + timeStep*v);
 	auto deltaV = A_LDLT.solve(b);
 
-	std::cout << "b" << std::endl;
-	std::cout << b << std::endl;
+	// std::cout << "b" << std::endl;
+	// std::cout << b << std::endl;
 
 	std::cout << "deltaV" << std::endl;
 	std::cout << deltaV << std::endl;
