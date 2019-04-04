@@ -16,6 +16,7 @@ public:
 	inline void addForce(const mymath::Vector<double, 3> &force);
 	inline void addVel(const mymath::Vector<double, 3> &deltaV);
 	inline void move(const mymath::Vector<double, 3> &deltaX);
+	inline void addPos(const mymath::Vector<double, 3> &pos);
 
 
 	// getter
@@ -87,7 +88,10 @@ inline void Particle::move(const mymath::Vector<double, 3> &deltaX)
 		return;
 	_offset += deltaX;
 }
-
+inline void Particle::addPos(const mymath::Vector<double, 3> &pos)
+{
+	_position += pos;
+}
 // getter
 inline mymath::Vector<double, 3> Particle::getPos() const
 {
@@ -118,7 +122,7 @@ inline double					 Particle::getMass() const
 }
 inline bool						 Particle::getState() const
 {
-	return _isFixed;
+	return !_isFixed;
 }
 
 // setter
