@@ -49,11 +49,14 @@ Spring::Spring(double k, double len)
 }
 
 Spring::Spring(double k, double len, std::shared_ptr<Particle> &left, std::shared_ptr<Particle> &right)
-	: _left(left)
-	, _right(right)
-	, _stiffness(k)
+	: _stiffness(k)
 	, _lenOrig(len)
-{}
+{
+	if (left != nullptr)
+		bindLeft(left);
+	if (right != nullptr)
+		bindRight(right);
+}
 
 // update
 inline void Spring::update()
@@ -100,7 +103,11 @@ inline void Spring::bindLeft(std::shared_ptr<Particle> &left)
 	{
 		auto LtoR = _right->getPos() - _left->getPos();
 		auto dx = LtoR * (1 - _lenOrig / LtoR.norm2());
-		_left->setOffset(_right->getOffset() - dx);
+		if (_left->getState())
+		{
+			_left->setOffset(_right->getOffset() - dx);
+			_left->addPos(dx);
+		}
 	}
 	else
 	{
@@ -115,7 +122,11 @@ inline void Spring::bindRight(std::shared_ptr<Particle> &right)
 	{
 		auto LtoR = _right->getPos() - _left->getPos();
 		auto dx = LtoR * (1 - _lenOrig / LtoR.norm2());
-		_right->setOffset(_left->getOffset() + dx);
+		if (_right->getState())
+		{
+			_right->setOffset(_left->getOffset() + dx);
+			_right->addPos(-dx);
+		}
 	}
 	else
 	{
