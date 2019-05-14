@@ -1,7 +1,7 @@
 #pragma once
 
+#include <Eigen/Core>
 #include <stdexcept>
-#include <eigen3/Eigen/Core>
 
 class Spring
 {
@@ -9,7 +9,7 @@ public:
 	Spring(double lid, double rid, double k = 5, double l = 10);
 	~Spring();
 
-	void accumulate_grad(Eigen::MatrixXd &grad, const Eigen::VectorXd &x);
+	void accumulate_grad(Eigen::VectorXd &grad, const Eigen::VectorXd &x);
 	void accumulate_hessian(Eigen::MatrixXd &hessian, const Eigen::VectorXd &x);
 private:
 
@@ -33,7 +33,7 @@ Spring::~Spring()
 }
 
 
-void Spring::accumulate_grad(Eigen::MatrixXd &grad, const Eigen::VectorXd &x)
+void Spring::accumulate_grad(Eigen::VectorXd &grad, const Eigen::VectorXd &x)
 {
 	if (_left_id*3+2 >= x.size() || _right_id*3+2 >= x.size())
 		throw std::range_error("[spring] left or right id larger then input x");

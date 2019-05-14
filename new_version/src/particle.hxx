@@ -1,12 +1,14 @@
 #pragma once
 
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 
 #define FIXED_PARTICLE_MASS	1e10
+#define UNSET_ID	-1
 
 class Particle
 {
 public:
+	Particle(Eigen::Vector3d x, Eigen::Vector3d v = {0, 0, 0}, bool fixed = false, double mass = 1);
 	Particle(unsigned id, Eigen::Vector3d x, Eigen::Vector3d v = {0, 0, 0}, bool fixed = false, double mass = 1);
 	~Particle();
 
@@ -33,6 +35,20 @@ private:
 	unsigned _id;
 	bool _fixed;
 };
+
+Particle::Particle(Eigen::Vector3d x, Eigen::Vector3d v, bool fixed, double mass)
+	: _x(x)
+	, _v(v)
+	, _mass(mass)
+	, _id(UNSET_ID)
+	, _fixed(fixed)
+{
+	if (_fixed)
+	{
+		_v = {0, 0, 0};
+		_mass = FIXED_PARTICLE_MASS;
+	}
+}
 
 Particle::Particle(unsigned id, Eigen::Vector3d x, Eigen::Vector3d v, bool fixed, double mass)
 	: _x(x)
