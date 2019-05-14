@@ -28,9 +28,44 @@ endif (CMAKE_COMPILER_IS_GNUCXX)
 find_package(Eigen3 REQUIRED)
 INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
 
+find_package(VTK COMPONENTS 
+	vtkCommonColor
+	vtkRenderingContextOpenGL2
+	vtkRenderingGL2PSOpenGL2
+	vtkCommonCore
+	vtkCommonDataModel
+	vtkFiltersSources
+	vtkInteractionStyle
+	vtkRenderingCore
+	vtkRenderingFreeType
+	vtkRenderingOpenGL2 QUIET)
+if (NOT VTK_FOUND)
+  message("Skipping Animation: ${VTK_NOT_FOUND_MESSAGE}")
+  return ()
+endif()
+message (STATUS "VTK_VERSION: ${VTK_VERSION}")
+
 # +----------------------------------------------+
 # | Build executable                             |
 # +--------------------------------------------- +
-add_executable(${target_name}
-    ${source_files}
-)
+if (VTK_VERSION VERSION_LESS "8.90.0")
+  # old system
+	include(${VTK_USE_FILE})
+	add_executable(${target_name}
+		MACOSX_BUNDLE
+		${source_files}
+	)
+	target_link_libraries(${target_name} PRIVATE ${VTK_LIBRARIES})
+else ()
+  # include all components
+	add_executable(${target_name}
+		MACOSX_BUNDLE
+		${source_files}
+	)
+	target_link_libraries(${target_name} PRIVATE ${VTK_LIBRARIES})
+  # vtk_module_autoinit is needed
+	vtk_module_autoinit(
+		TARGETS ${target_name}
+		MODULES ${VTK_LIBRARIES}
+	)
+endif () 
