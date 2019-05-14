@@ -1,48 +1,55 @@
 #pragma once
 
+#include <iostream>
 #include <stdexcept>
 #include <vector>
 #include <memory>
 #include <Eigen/Core>
+#include <Eigen/Dense>
+// #include <cmath>
+
+// #define DEBUG
 
 #include "particle.hxx"
 #include "spring.hxx"
 
 #define EPSILON 1e-4
-#define NEWTON_STEPS 10
+#define NEWTON_STEPS 5
 
 class NetSystem
 {
 public:
-	NetSystem(double h = 0.1, const std::vector<std::shared_ptr<Particle>* > &particle_vec = {}, const std::vector<std::shared_ptr<Spring >* > &spring_vec = {});
+	NetSystem(double h = 0.1, const std::vector<std::shared_ptr<Particle> > &particle_vec = {}, const std::vector<std::shared_ptr<Spring > > &spring_vec = {});
 	~NetSystem();
 
-	void assemble_complete();
-	void setAssembleable(bool flag);
-	bool getAssembleable();
+	inline void assemble_complete();
+	inline void setAssembleable(bool flag);
+	inline bool getAssembleable();
 
-	void setH(double h);
-	double getH();
+	inline void setH(double h);
+	inline double getH();
 
-	unsigned add_particle(Eigen::Vector3d x, Eigen::Vector3d v = {0, 0, 0}, bool fixed = false, double mass = 1);
-	unsigned add_particle(Particle *ptr);
+	inline unsigned add_particle(Eigen::Vector3d x, Eigen::Vector3d v = {0, 0, 0}, bool fixed = false, double mass = 1);
+	inline unsigned add_particle(Particle *ptr);
 
-	void add_spring(double lid, double rid, double k = 5, double l = 10);
-	void add_spring(Spring *ptr);
+	inline void add_spring(double lid, double rid, double k = 5, double l = 10);
+	inline void add_spring(Spring *ptr);
 
-	void simulate();
+	inline void simulate();
 
-	void render();
+	inline void render();
+	
 private:
-	void _setup();
-	void _update();
-	Eigen::VectorXd _newton_iterate();
-	Eigen::VectorXd _f(const Eigen::VectorXd &x);
-	Eigen::MatrixXd _df(const Eigen::VectorXd &x);
+	inline void _setup();
+	inline void _update();
+	
+	inline Eigen::VectorXd _newton_iterate();
+	inline Eigen::VectorXd _f(const Eigen::VectorXd &x);
+	inline Eigen::MatrixXd _df(const Eigen::VectorXd &x);
 
 private:
-	std::vector<std::shared_ptr<Particle>* > _particle_vec;
-	std::vector<std::shared_ptr<Spring >* > _spring_vec;
+	std::vector<std::shared_ptr<Particle> > _particle_vec;
+	std::vector<std::shared_ptr<Spring > > _spring_vec;
 
 	Eigen::MatrixXd _mass;
 	Eigen::VectorXd _xt;
@@ -52,7 +59,7 @@ private:
 	bool _assembleable;
 };
 
-NetSystem::NetSystem(double h, const std::vector<std::shared_ptr<Particle>* > &particle_vec, const std::vector<std::shared_ptr<Spring>* > &spring_vec)
+NetSystem::NetSystem(double h, const std::vector<std::shared_ptr<Particle> > &particle_vec, const std::vector<std::shared_ptr<Spring> > &spring_vec)
 	: _particle_vec(particle_vec)
 	, _spring_vec(spring_vec)
 	, _h(h)
@@ -134,20 +141,20 @@ void NetSystem::_setup()
 {
 	_xt = Eigen::VectorXd(_particle_vec.size() * 3);
 	_vt = Eigen::VectorXd(_particle_vec.size() * 3);
-	_mass = Eigen::MatrixXd(_particle_vec.size(), _particle_vec.size());
+	_mass = Eigen::MatrixXd(_particle_vec.size() * 3, _particle_vec.size() * 3);
 
 	int i = 0;
 	for (auto item : _particle_vec)
 	{
-		_mass(i, i) = (*item)->getMass();
-		auto X = (*item)->getX();
-		auto V = (*item)->getV();
+		Eigen::Vector3d X = item->getX();
+		Eigen::Vector3d V = item->getV();
 		for (int j = 0; j < 3; ++j)
 		{
+			_mass(i+j, i+j) = item->getMass();
 			_xt(i+j) = X(j);
 			_vt(i+j) = V(j);
 		}
-		i+=3;
+		i = i + 3;
 	}
 }
 
@@ -156,8 +163,8 @@ void NetSystem::_update()
 	int i = 0;
 	for (auto item : _particle_vec)
 	{
-		(*item)->setX({_xt(i), _xt(i+1), _xt(i+1)});
-		(*item)->setV({_vt(i), _vt(i+1), _vt(i+1)});
+		item->setX({_xt(i), _xt(i+1), _xt(i+1)});
+		item->setV({_vt(i), _vt(i+1), _vt(i+1)});
 		i+=3;
 	}
 }
@@ -169,7 +176,7 @@ Eigen::VectorXd NetSystem::_f(const Eigen::VectorXd &x)
 	
 	Eigen::VectorXd grad = Eigen::VectorXd::Zero(_xt.size());
 	for (auto spring : _spring_vec)
-		(*spring)->accumulate_grad(grad, x);
+		spring->accumulate_grad(grad, x);
 	
 	return _mass * (x - _xt - _h*_vt) + _h*_h*grad;
 }
@@ -181,7 +188,7 @@ Eigen::MatrixXd NetSystem::_df(const Eigen::VectorXd &x)
 	
 	Eigen::MatrixXd hessian = Eigen::MatrixXd::Zero(_xt.size(), _xt.size());
 	for (auto spring: _spring_vec)
-		(*spring)->accumulate_hessian(hessian, x);
+		spring->accumulate_hessian(hessian, x);
 	
 	return _mass + _h*_h*hessian;
 }
@@ -199,6 +206,15 @@ Eigen::VectorXd NetSystem::_newton_iterate()
 		deltaX = A.ldlt().solve(b);
 		xtt += deltaX;
 	}
+#ifdef DEBUG
+	std::cout << "newton iterate" << std::endl;
+	std::cout << _f(xtt) << std::endl << std::endl;
+	Eigen::VectorXd grad = Eigen::VectorXd::Zero(_xt.size());
+	for (auto spring : _spring_vec)
+		spring->accumulate_grad(grad, xtt);
+	std::cout << "force" << std::endl;
+	std::cout << grad << std::endl << std::endl;
+#endif
 
 	return xtt;
 }
@@ -207,9 +223,9 @@ void NetSystem::simulate()
 {
 	if (_assembleable)
 		throw std::runtime_error("[net system] simulate need not assembleable status.");
-	
-	auto xtt = _newton_iterate();
-	auto deltaX = xtt - _xt;
+
+	Eigen::VectorXd xtt = _newton_iterate();
+	Eigen::VectorXd deltaX = xtt - _xt;
 	_xt = xtt;
 	_vt = deltaX / _h;
 
@@ -221,4 +237,22 @@ void NetSystem::render()
 {
 	if (_assembleable)
 		throw std::runtime_error("[net system] render need not assembleable status.");
+
+	int i = 0;
+	for (auto spring : _spring_vec)
+	{
+		unsigned lid = spring->getLID();
+		unsigned rid = spring->getRID();
+
+		std::cout << "spring " << i << ":" << std::endl;
+		std::cout << "\tpos<left> : " << _xt(3*lid) << " " << _xt(3*lid+1) << " " << _xt(3*lid+2) << std::endl;
+		std::cout << "\tvec<left> : " << _vt(3*lid) << " " << _vt(3*lid+1) << " " << _vt(3*lid+2) << std::endl;
+		std::cout << "\tpos<right>: " << _xt(3*rid) << " " << _xt(3*rid+1) << " " << _xt(3*rid+2) << std::endl;
+		std::cout << "\tvec<right>: " << _vt(3*rid) << " " << _vt(3*rid+1) << " " << _vt(3*rid+2) << std::endl;
+		std::cout << "\tlength    : " << sqrt((_xt(3*lid) - _xt(3*rid)) * (_xt(3*lid) - _xt(3*rid))
+										+ (_xt(3*lid+1) - _xt(3*rid+1)) * (_xt(3*lid+1) - _xt(3*rid+1))
+										+ (_xt(3*lid+2) - _xt(3*rid+2)) * (_xt(3*lid+2) - _xt(3*rid+2))) << std::endl;
+		std::cout << std::endl;
+		i++;
+	}
 }
