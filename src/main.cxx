@@ -1,13 +1,14 @@
-#include "spring.hxx"
-#include "particle.hxx"
-#include "simulation.hxx"
-#include "renderer.hxx"
+#include "System/spring.h"
+#include "System/particle.h"
+#include "System/simulation.h"
+
+#include "Render/renderer.h"
 
 #include <unistd.h>
 #include <iostream>
 #include <memory>
 #include <Eigen/Core>
-// #include <cmath>
+
 using namespace std;
 using namespace Eigen;
 
@@ -22,6 +23,7 @@ int main(int argc, char const *argv[])
 	Renderer renderer;
 
 	assemble(spring_system);
+	spring_system->assemble_complete();
 
 	renderer.AddTimerEvent(spring_system);
 
@@ -30,7 +32,6 @@ int main(int argc, char const *argv[])
 	// {
 	// 	spring_system->render();
 	// 	spring_system->simulate();
-	// 	cout << "----------------" << endl << endl;
 	// 	sleep(1);
 	// }
 	
@@ -40,35 +41,21 @@ int main(int argc, char const *argv[])
 void assemble(const shared_ptr<NetSystem> &system)
 {
 	for (unsigned i = 0; i < CLOTH_WIDTH; ++i)
-	{
 		for (unsigned j = 0; j < CLOTH_LENGTH; ++j)
-		{
 			if (j == 0 && (i == CLOTH_LENGTH-1 || i == 0))
 				system->add_particle({i*1.0, 10, j*1.0}, true);
 			else
 				system->add_particle({i*1.0, 10, j*1.0});
-		}
-	}
+
 	for (unsigned i = 0; i < CLOTH_WIDTH; ++i)
-	{
 		for (unsigned j = 0; j < CLOTH_LENGTH-1; ++j)
-		{
 			system->add_spring(CLOTH_LENGTH*i+j, CLOTH_LENGTH*i+j+1, 20, 1);
-		}
-	}
+
 	for (unsigned i = 0; i < CLOTH_WIDTH-1; ++i)
-	{
 		for (unsigned j = 0; j < CLOTH_LENGTH; ++j)
-		{
 			system->add_spring(CLOTH_LENGTH*i+j, CLOTH_LENGTH*(1+i)+j, 20, 1);
-		}
-	}
+
 	for (unsigned i = 0; i < CLOTH_WIDTH-1; ++i)
-	{
 		for (unsigned j = 0; j < CLOTH_LENGTH-1; ++j)
-		{
 			system->add_spring(CLOTH_LENGTH*i+j, CLOTH_LENGTH*(1+i)+j+1, 20, sqrt(2));
-		}
-	}
-	system->assemble_complete();
 }

@@ -1,51 +1,8 @@
-#pragma once
+#include "spring.h"
 
-#include <Eigen/Core>
-#include <stdexcept>
 
-class Spring
-{
-public:
-	Spring(unsigned lid, unsigned rid, double k = 5, double l = 10);
-	~Spring();
-
-	inline unsigned getLID();
-	inline unsigned getRID();
-
-	inline void accumulate_grad(Eigen::VectorXd &grad, const Eigen::VectorXd &x);
-	inline void accumulate_hessian(Eigen::MatrixXd &hessian, const Eigen::VectorXd &x);
-private:
-
-private:
-	double _k;
-	double _l;
-	unsigned _left_id;
-	unsigned _right_id;
-};
-
-Spring::Spring(unsigned lid, unsigned rid, double k, double l)
-	: _k(k)
-	, _l(l)
-	, _left_id(lid)
-	, _right_id(rid)
-{
-}
-
-Spring::~Spring()
-{
-}
-
-unsigned Spring::getLID()
-{
-	return _left_id;
-}
-
-unsigned Spring::getRID()
-{
-	return _right_id;
-}
-
-void Spring::accumulate_grad(Eigen::VectorXd &grad, const Eigen::VectorXd &x)
+void Spring::accumulate_grad(Eigen::VectorXd &grad, 
+                             const Eigen::VectorXd &x) const
 {
 	if (_left_id*3+2 >= x.size() || _right_id*3+2 >= x.size())
 		throw std::range_error("[spring] left or right id larger then input x");
@@ -64,7 +21,8 @@ void Spring::accumulate_grad(Eigen::VectorXd &grad, const Eigen::VectorXd &x)
 	}
 }
 
-void Spring::accumulate_hessian(Eigen::MatrixXd &hessian, const Eigen::VectorXd &x)
+void Spring::accumulate_hessian(Eigen::MatrixXd &hessian, 
+                                const Eigen::VectorXd &x) const
 {
 	if (_left_id*3+2 >= x.size() || _right_id*3+2 >= x.size())
 		throw std::range_error("[spring] left or right id larger then input x");

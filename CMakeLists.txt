@@ -8,6 +8,11 @@ set(target_name mass_spring_system)
 
 set(source_files
 	src/main.cxx
+	src/System/simulation.cxx
+	src/System/spring.cxx
+	src/System/particle.cxx
+	src/Render/renderer.cxx
+	src/Render/SystemTimerCallback.cxx
 )
 
 # +----------------------------------------------+
