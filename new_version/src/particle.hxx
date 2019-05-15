@@ -76,7 +76,7 @@ Particle::~Particle()
 
 void Particle::accumulate_grad(Eigen::VectorXd &grad, const Eigen::VectorXd &x)
 {
-	if (x(3*_id + 2) < EPSILON && x(3*_id + 2) > -EPSILON)
+	if (x(3*_id + 2)  > EPSILON)
 		grad(3*_id+2) += _mass * GRAVITY;
 }
 
