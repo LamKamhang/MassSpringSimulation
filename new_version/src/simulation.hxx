@@ -13,6 +13,9 @@
 #include "particle.hxx"
 #include "spring.hxx"
 
+
+#define GRAVITY_MODE
+
 #define EPSILON 1e-4
 #define NEWTON_STEPS 10
 #define MINIMUM_LENGTH 0.1
@@ -370,12 +373,14 @@ Eigen::VectorXd NetSystem::_f(const Eigen::VectorXd &x)
 	Eigen::VectorXd grad = Eigen::VectorXd::Zero(_xt.size());
 	for (auto spring : _spring_vec)
 		spring->accumulate_grad(grad, x);
+#ifdef GRAVITY_MODE
+	for (auto particle : _particle_vec)
+		particle->accumulate_grad(grad, x);
+#endif
 #ifdef DEBUG
 	std::cout << "grad" << std::endl;
 	std::cout << grad << std::endl << std::endl;
 #endif
-	// for (auto particle : _particle_vec)
-	// 	particle->accumulate_grad(grad, x);
 	
 	return _mass * ((x - _xt)/(_h*_h) - _vt/_h) + grad;
 }
@@ -450,6 +455,10 @@ void NetSystem::simulate()
 	Eigen::VectorXd grad = Eigen::VectorXd::Zero(_xt.size());
 	for (auto spring : _spring_vec)
 		spring->accumulate_grad(grad, _xt);
+#ifdef GRAVITY_MODE
+	for (auto particle : _particle_vec)
+		particle->accumulate_grad(grad, _xt);
+#endif
 	std::cout << -grad << std::endl << std::endl;
 
 	std::cout << "pos:" << std::endl;
