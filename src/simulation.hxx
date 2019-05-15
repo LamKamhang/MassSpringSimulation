@@ -38,7 +38,7 @@ public:
 	inline const Eigen::VectorXd& get_x() const;
 	inline const Eigen::VectorXd& get_v() const;
 
-	inline unsigned add_particle(Eigen::Vector3d x, Eigen::Vector3d v = {0, 0, 0}, bool fixed = false, double mass = 1);
+	inline unsigned add_particle(Eigen::Vector3d x, bool fixed = false, double mass = 1, Eigen::Vector3d v = {0, 0, 0});
 	inline unsigned add_particle(Particle *ptr);
 
 	inline void add_spring(double lid, double rid, double k = 5, double l = 10);
@@ -60,7 +60,7 @@ private:
 	std::vector<std::shared_ptr<Particle> > _particle_vec;
 	std::vector<std::shared_ptr<Spring > > _spring_vec;
 
-	Eigen::MatrixXd _mass;
+	// Eigen::MatrixXd _mass;
 	Eigen::VectorXd _xt;
 	Eigen::VectorXd _vt;
 
@@ -129,13 +129,13 @@ double NetSystem::getH()
 	return _h;
 }
 
-unsigned NetSystem::add_particle(Eigen::Vector3d x, Eigen::Vector3d v, bool fixed, double mass)
+unsigned NetSystem::add_particle(Eigen::Vector3d x, bool fixed, double mass, Eigen::Vector3d v)
 {
 	if (!_assembleable)
 		throw std::runtime_error("[net system] it's not _assembleable");
 
 	unsigned id = _particle_vec.size();
-	_particle_vec.emplace_back(new Particle(id, x, v, fixed, mass));
+	_particle_vec.emplace_back(new Particle(id, x, fixed, mass, v));
 	return id;
 }
 
@@ -171,7 +171,7 @@ void NetSystem::_setup()
 {
 	_xt = Eigen::VectorXd(_particle_vec.size() * 3);
 	_vt = Eigen::VectorXd(_particle_vec.size() * 3);
-	_mass = Eigen::MatrixXd(_particle_vec.size() * 3, _particle_vec.size() * 3);
+	// _mass = Eigen::MatrixXd(_particle_vec.size() * 3, _particle_vec.size() * 3);
 
 	int i;
 	for (auto item : _particle_vec)
@@ -181,7 +181,7 @@ void NetSystem::_setup()
 		Eigen::Vector3d V = item->getV();
 		for (int j = 0; j < 3; ++j)
 		{
-			_mass(i+j, i+j) = item->getMass();
+			// _mass(i+j, i+j) = item->getMass();
 			_xt(i+j) = X(j);
 			_vt(i+j) = V(j);
 		}
@@ -373,16 +373,28 @@ Eigen::VectorXd NetSystem::_f(const Eigen::VectorXd &x)
 	Eigen::VectorXd grad = Eigen::VectorXd::Zero(_xt.size());
 	for (auto spring : _spring_vec)
 		spring->accumulate_grad(grad, x);
-#ifdef GRAVITY_MODE
+	
+	double factor = 1 / _h / _h;
+	double term;
+	unsigned id;
 	for (auto particle : _particle_vec)
+	{
+#ifdef GRAVITY_MODE
 		particle->accumulate_grad(grad, x);
 #endif
+		id = 3*particle->getID();
+		term = particle->getMass() * factor;
+		grad(id) += term * (x(id) - _xt(id) - _h*_vt(id));
+		grad(id+1) += term * (x(id+1) - _xt(id+1) - _h*_vt(id+1));
+		grad(id+2) += term * (x(id+2) - _xt(id+2) - _h*_vt(id+2));
+	}
 #ifdef DEBUG
 	std::cout << "grad" << std::endl;
 	std::cout << grad << std::endl << std::endl;
 #endif
 	
-	return _mass * ((x - _xt)/(_h*_h) - _vt/_h) + grad;
+	return grad;
+	// return _mass * ((x - _xt)/(_h*_h) - _vt/_h) + grad;
 }
 
 Eigen::MatrixXd NetSystem::_df(const Eigen::VectorXd &x)
@@ -397,7 +409,22 @@ Eigen::MatrixXd NetSystem::_df(const Eigen::VectorXd &x)
 	std::cout << "hessian" << std::endl;
 	std::cout << hessian << std::endl << std::endl;
 #endif
-	return _mass / (_h*_h) + hessian;
+
+	// _mass / _h^2 + hessian;
+	double factor = 1 / _h / _h;
+	double term;
+	unsigned id;
+	for (auto particle : _particle_vec)
+	{
+		id = 3*particle->getID();
+		term = particle->getMass() * factor;
+		hessian(id, id) += term;
+		hessian(id+1, id+1) += term;
+		hessian(id+2, id+2) += term;
+	}
+
+	return hessian;
+	// return _mass / (_h*_h) + hessian;
 }
 
 Eigen::VectorXd NetSystem::_newton_iterate()
@@ -451,6 +478,7 @@ void NetSystem::simulate()
 
 
 	_update();
+#ifdef DEBUG
 	std::cout << "force: " << std::endl;
 	Eigen::VectorXd grad = Eigen::VectorXd::Zero(_xt.size());
 	for (auto spring : _spring_vec)
@@ -466,6 +494,7 @@ void NetSystem::simulate()
 
 	std::cout << "vec:" << std::endl;
 	std::cout << _vt << std::endl << std::endl;
+#endif
 }
 
 
