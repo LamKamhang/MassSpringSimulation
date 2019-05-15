@@ -36,3 +36,5 @@
 
 # setting files
 .vscode
+build
+vtk
