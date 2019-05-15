@@ -4,18 +4,17 @@
 
 #define FIXED_PARTICLE_MASS	1e10
 #define UNSET_ID	-1
-#define GRAVITY 10.0
+#define GRAVITY 1.0
 #define EPSILON 1e-4
 
 class Particle
 {
 public:
-	Particle(Eigen::Vector3d x, Eigen::Vector3d v = {0, 0, 0}, bool fixed = false, double mass = 1);
-	Particle(unsigned id, Eigen::Vector3d x, Eigen::Vector3d v = {0, 0, 0}, bool fixed = false, double mass = 1);
+	Particle(Eigen::Vector3d x, bool fixed = false, double mass = 1, Eigen::Vector3d v = {0, 0, 0});
+	Particle(unsigned id, Eigen::Vector3d x, bool fixed = false, double mass = 1, Eigen::Vector3d v = {0, 0, 0});
 	~Particle();
 
 	inline void accumulate_grad(Eigen::VectorXd &grad, const Eigen::VectorXd &x);
-	inline void accumulate_hessian(Eigen::MatrixXd &hessian, const Eigen::VectorXd &x);
 
 	inline void updateX(Eigen::Vector3d deltaX);
 	inline void updateV(Eigen::Vector3d deltaV);
@@ -41,7 +40,7 @@ private:
 	bool _fixed;
 };
 
-Particle::Particle(Eigen::Vector3d x, Eigen::Vector3d v, bool fixed, double mass)
+Particle::Particle(Eigen::Vector3d x, bool fixed, double mass, Eigen::Vector3d v)
 	: _x(x)
 	, _v(v)
 	, _mass(mass)
@@ -55,7 +54,7 @@ Particle::Particle(Eigen::Vector3d x, Eigen::Vector3d v, bool fixed, double mass
 	}
 }
 
-Particle::Particle(unsigned id, Eigen::Vector3d x, Eigen::Vector3d v, bool fixed, double mass)
+Particle::Particle(unsigned id, Eigen::Vector3d x, bool fixed, double mass, Eigen::Vector3d v)
 	: _x(x)
 	, _v(v)
 	, _mass(mass)
@@ -76,15 +75,9 @@ Particle::~Particle()
 
 void Particle::accumulate_grad(Eigen::VectorXd &grad, const Eigen::VectorXd &x)
 {
-	if (x(3*_id + 2)  > EPSILON)
-		grad(3*_id+2) += _mass * GRAVITY;
+	// if (x(3*_id + 1)  > EPSILON)
+		grad(3*_id+1) += _mass * GRAVITY;
 }
-
-void Particle::accumulate_hessian(Eigen::MatrixXd &hessian, const Eigen::VectorXd &x)
-{
-
-}
-
 
 inline void Particle::updateX(Eigen::Vector3d deltaX)
 {
