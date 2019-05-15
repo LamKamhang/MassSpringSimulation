@@ -7,34 +7,22 @@
 #include <iostream>
 #include <memory>
 #include <Eigen/Core>
-
+// #include <cmath>
 using namespace std;
 using namespace Eigen;
+
+#define CLOTH_WIDTH 12
+#define CLOTH_LENGTH 12
+
+void assemble(const shared_ptr<NetSystem> &system);
 
 int main(int argc, char const *argv[])
 {
 	shared_ptr<NetSystem> spring_system(new NetSystem);
-	spring_system->add_particle({0,5,3}, {0,0,0}, true);
-	spring_system->add_particle({1,5,3});
-	spring_system->add_particle({0,2,0});
-	spring_system->add_particle({0,0,1});
-	spring_system->add_particle({1,1,1});
-	spring_system->add_particle({4,1,1});
-	spring_system->add_particle({5,1,3});
-	// spring_system->add_particle({6,7,8});
-	// spring_system->add_particle({7,8,9});
-
-	spring_system->add_spring(0, 1, 1e10, 1);
-	spring_system->add_spring(1, 2, 1, 1);
-	spring_system->add_spring(2, 3, 1, 1);
-	spring_system->add_spring(1, 4, 3, 1);
-	spring_system->add_spring(4, 5, 3, 1);
-	spring_system->add_spring(3, 6, 3, 1);
-	// spring_system->add_spring(2, 3, 3, 1);
-		
-	spring_system->assemble_complete();
-
 	Renderer renderer;
+
+	assemble(spring_system);
+
 	renderer.AddTimerEvent(spring_system);
 
 	renderer.render();
@@ -47,4 +35,40 @@ int main(int argc, char const *argv[])
 	// }
 	
 	return 0;
+}
+
+void assemble(const shared_ptr<NetSystem> &system)
+{
+	for (unsigned i = 0; i < CLOTH_WIDTH; ++i)
+	{
+		for (unsigned j = 0; j < CLOTH_LENGTH; ++j)
+		{
+			if (j == 0 && (i == CLOTH_LENGTH-1 || i == 0))
+				system->add_particle({i*1.0, 10, j*1.0}, true);
+			else
+				system->add_particle({i*1.0, 10, j*1.0});
+		}
+	}
+	for (unsigned i = 0; i < CLOTH_WIDTH; ++i)
+	{
+		for (unsigned j = 0; j < CLOTH_LENGTH-1; ++j)
+		{
+			system->add_spring(CLOTH_LENGTH*i+j, CLOTH_LENGTH*i+j+1, 20, 1);
+		}
+	}
+	for (unsigned i = 0; i < CLOTH_WIDTH-1; ++i)
+	{
+		for (unsigned j = 0; j < CLOTH_LENGTH; ++j)
+		{
+			system->add_spring(CLOTH_LENGTH*i+j, CLOTH_LENGTH*(1+i)+j, 20, 1);
+		}
+	}
+	for (unsigned i = 0; i < CLOTH_WIDTH-1; ++i)
+	{
+		for (unsigned j = 0; j < CLOTH_LENGTH-1; ++j)
+		{
+			system->add_spring(CLOTH_LENGTH*i+j, CLOTH_LENGTH*(1+i)+j+1, 20, sqrt(2));
+		}
+	}
+	system->assemble_complete();
 }
