@@ -79,13 +79,16 @@ void Spring::accumulate_hessian(Eigen::MatrixXd &hessian, const Eigen::VectorXd 
 	double base1 = _k * (norm - _l) / norm;
 	double base2 = _k * _l / (norm * norm * norm);
 
+	unsigned ni, nni;
+	double pattern, term;
+
 	for (unsigned i = 0; i < 3; ++i)
 	{
-		unsigned ni = (i+1)%3;
-		unsigned nni = (i+2)%3;
+		ni = (i+1)%3;
+		nni = (i+2)%3;
 
-		double pattern = (left(i) - right(i)) * (left(i) - right(i));
-		double term = base1 + term * base2;
+		pattern = (left(i) - right(i)) * (left(i) - right(i));
+		term = base1 + pattern * base2;
 		hessian(3*_left_id+i, 3*_left_id+i) += term;
 		hessian(3*_left_id+i, 3*_right_id+i) += -term;
 		hessian(3*_right_id+i, 3*_right_id+i) += term;
