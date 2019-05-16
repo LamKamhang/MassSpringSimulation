@@ -23,15 +23,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 	# set(CMAKE_EXE_LINKER_FLAGS "-pthread")
-	set(CMAKE_CXX_FLAGS_DEBUG "-O3 -Wall -g -pg")
+	set(CMAKE_CXX_FLAGS_DEBUG "-O0 -Wall -g -pg")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall")
 endif (CMAKE_COMPILER_IS_GNUCXX)
 
 # +----------------------------------------------+
 # | Third Party Libray                           |
 # +--------------------------------------------- +
+include_directories(resource)
+
 find_package(Eigen3 REQUIRED)
-INCLUDE_DIRECTORIES(${EIGEN3_INCLUDE_DIR})
+include_directories(${EIGEN3_INCLUDE_DIR})
 
 find_package(VTK COMPONENTS 
 	vtkCommonColor

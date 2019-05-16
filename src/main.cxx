@@ -8,6 +8,8 @@
 #include <iostream>
 #include <memory>
 #include <Eigen/Core>
+#include "System/assemble.hxx"
+#include "igl/readOBJ.h"
 
 using namespace std;
 using namespace Eigen;
@@ -15,14 +17,17 @@ using namespace Eigen;
 #define CLOTH_WIDTH 12
 #define CLOTH_LENGTH 12
 
-void assemble(const shared_ptr<NetSystem> &system);
 
 int main(int argc, char const *argv[])
 {
 	shared_ptr<NetSystem> spring_system(new NetSystem);
 	Renderer renderer;
 
-	assemble(spring_system);
+	assemble(spring_system, "resource/mini_cloth.obj");
+	// assemble(spring_system, CLOTH_WIDTH, CLOTH_LENGTH);
+
+	(spring_system->get_particle_vec())[0]->setFix(true);
+	(spring_system->get_particle_vec())[CLOTH_LENGTH*(CLOTH_LENGTH-1)]->setFix(true);
 	spring_system->assemble_complete();
 
 	renderer.AddTimerEvent(spring_system);
@@ -36,26 +41,4 @@ int main(int argc, char const *argv[])
 	// }
 	
 	return 0;
-}
-
-void assemble(const shared_ptr<NetSystem> &system)
-{
-	for (unsigned i = 0; i < CLOTH_WIDTH; ++i)
-		for (unsigned j = 0; j < CLOTH_LENGTH; ++j)
-			if (j == 0 && (i == CLOTH_LENGTH-1 || i == 0))
-				system->add_particle({i*1.0, 10, j*1.0}, true);
-			else
-				system->add_particle({i*1.0, 10, j*1.0});
-
-	for (unsigned i = 0; i < CLOTH_WIDTH; ++i)
-		for (unsigned j = 0; j < CLOTH_LENGTH-1; ++j)
-			system->add_spring(CLOTH_LENGTH*i+j, CLOTH_LENGTH*i+j+1, 20, 1);
-
-	for (unsigned i = 0; i < CLOTH_WIDTH-1; ++i)
-		for (unsigned j = 0; j < CLOTH_LENGTH; ++j)
-			system->add_spring(CLOTH_LENGTH*i+j, CLOTH_LENGTH*(1+i)+j, 20, 1);
-
-	for (unsigned i = 0; i < CLOTH_WIDTH-1; ++i)
-		for (unsigned j = 0; j < CLOTH_LENGTH-1; ++j)
-			system->add_spring(CLOTH_LENGTH*i+j, CLOTH_LENGTH*(1+i)+j+1, 20, sqrt(2));
 }
