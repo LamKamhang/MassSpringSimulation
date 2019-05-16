@@ -20,12 +20,20 @@ set(source_files
 # +--------------------------------------------- +
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
-
-if (CMAKE_COMPILER_IS_GNUCXX)
+if (PROFILE_FLAG)
+  message(STATUS "profiling")
+  if (CMAKE_COMPILER_IS_GNUCXX)
 	# set(CMAKE_EXE_LINKER_FLAGS "-pthread")
 	set(CMAKE_CXX_FLAGS_DEBUG "-O0 -Wall -g -pg")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall -pg")
+      endif (CMAKE_COMPILER_IS_GNUCXX)
+    else (PROFILE_FLAG)
+      if (CMAKE_COMPILER_IS_GNUCXX)
+	# set(CMAKE_EXE_LINKER_FLAGS "-pthread")
+	set(CMAKE_CXX_FLAGS_DEBUG "-O0 -Wall -g")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -Wall")
-endif (CMAKE_COMPILER_IS_GNUCXX)
+      endif (CMAKE_COMPILER_IS_GNUCXX)
+endif (PROFILE_FLAG)
 
 # +----------------------------------------------+
 # | Third Party Libray                           |
