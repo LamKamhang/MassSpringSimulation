@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../System/simulation.h"
-#include "SpringLine.h"
+#include "SpringLine.hxx"
 #include <eigen3/Eigen/Core>
 
 #include <memory>

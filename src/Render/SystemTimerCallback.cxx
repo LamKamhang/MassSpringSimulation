@@ -4,7 +4,7 @@ void SystemTimerCallback::Execute(vtkObject * caller, unsigned long vtkNotUsed(e
 					void * vtkNotUsed(callData))
 {
 	_system->simulate();
-	_system->render();
+	// _system->render();
 	
 	auto xt = _system->get_x();
 	auto spring_vec = _system->get_spring_vec();
