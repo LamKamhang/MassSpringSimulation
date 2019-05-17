@@ -11,6 +11,7 @@ Renderer::Renderer(unsigned long duration)
 	renderWindowInteractor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
 
 	renderer->SetBackground(colors->GetColor3d("SlateGray").GetData());
+	// renderer->SetBackground(1,1,1);
 
 	renderWindow->AddRenderer(renderer);
 	renderWindow->SetWindowName("Mass Springs System");
@@ -37,6 +38,7 @@ void Renderer::AddTimerEvent(const std::shared_ptr<NetSystem> &system)
 		unsigned rid = spring->get_rid();
 
 		SpringLine *line = new SpringLine(xt(3*lid), xt(3*lid+1), xt(3*lid+2), xt(3*rid), xt(3*rid+1), xt(3*rid+2));
+		// SpringLine *line = new SpringLine(xt(3*lid), xt(3*lid+1), xt(3*lid+2), xt(3*rid), xt(3*rid+1), xt(3*rid+2), 0, 0, 0);
 		line->lid = lid;
 		line->rid = rid;
 		renderer->AddActor(line->actor);

@@ -47,6 +47,7 @@ void NetSystem::_update()
 
 	for (auto spring : _spring_vec)
 	{
+		double min_length = spring->get_l() * MINIMUM_LENGTH_FACTOR;
 		auto lid = spring->get_lid();
 		auto rid = spring->get_rid();
 
@@ -63,9 +64,6 @@ void NetSystem::_update()
 		Eigen::Vector3d l_nX(_xt(lid), _xt(lid+1), _xt(lid+2));
 		Eigen::Vector3d r_nX(_xt(rid), _xt(rid+1), _xt(rid+2));
 
-		Eigen::Vector3d l_nV(_vt(lid), _vt(lid+1), _vt(lid+2));
-		Eigen::Vector3d r_nV(_vt(rid), _vt(rid+1), _vt(rid+2));
-
 		if (lp->getFixStatus())
 		{
 			for (int j = 0; j < 3; ++j)
@@ -76,7 +74,7 @@ void NetSystem::_update()
 		}
 		else
 		{
-			if ((l_nX - r_nX).norm() <= MINIMUM_LENGTH)
+			if ((l_nX - r_nX).norm() <= min_length)
 			{
 				for (int j = 0; j < 3; ++j)
 				{
@@ -102,7 +100,7 @@ void NetSystem::_update()
 		}
 		else
 		{
-			if ((l_nX - r_nX).norm() <= MINIMUM_LENGTH)
+			if ((l_nX - r_nX).norm() <= min_length)
 			{
 				for (int j = 0; j < 3; ++j)
 				{

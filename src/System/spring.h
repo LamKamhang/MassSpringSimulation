@@ -16,6 +16,8 @@ public:
 
 	unsigned get_lid() const;
 	unsigned get_rid() const;
+	double   get_l()   const;
+	double   get_k()   const;
 
 	void accumulate_grad(Eigen::VectorXd &grad, 
 		const Eigen::VectorXd &x) const;
@@ -44,6 +46,17 @@ inline unsigned Spring::get_rid() const
 {
 	return _right_id;
 }
+
+inline double Spring::get_l() const
+{
+	return _l;
+}
+
+inline double Spring::get_k() const
+{
+	return _k;
+}
+
 
 inline void Spring::set_l(double l)
 {

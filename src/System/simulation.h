@@ -17,7 +17,7 @@
 
 #define EPSILON 1e-4
 #define NEWTON_STEPS 10
-#define MINIMUM_LENGTH 0.1
+#define MINIMUM_LENGTH_FACTOR 0.1
 
 class NetSystem
 {
