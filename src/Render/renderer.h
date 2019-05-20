@@ -2,7 +2,7 @@
 
 #include "../System/simulation.h"
 
-#include <eigen3/Eigen/Core>
+#include <Eigen/Core>
 
 #include <memory>
 #include <ctime>
