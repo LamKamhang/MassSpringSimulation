@@ -1,5 +1,5 @@
 #include "simulation.h"
-
+#include <Eigen/IterativeLinearSolvers>
 
 void NetSystem::_setup()
 {
@@ -181,6 +181,7 @@ Eigen::VectorXd NetSystem::_newton_iterate()
 	Eigen::VectorXd xtt = _xt;
 	Eigen::VectorXd b, deltaX;
 	Eigen::MatrixXd A;
+	Eigen::ConjugateGradient<Eigen::MatrixXd> cg;
 
 	for (int i = 0; i < NEWTON_STEPS; ++i)
 	{
@@ -191,7 +192,9 @@ Eigen::VectorXd NetSystem::_newton_iterate()
 			break;
 		}	
 		A = _df(xtt);
-		deltaX = A.ldlt().solve(b);
+		// deltaX = A.ldlt().solve(b);
+		cg.compute(A);
+		deltaX = cg.solve(b);
 		xtt += deltaX;
 	}
 #ifdef DEBUG
